@@ -15,7 +15,7 @@
 
 **WHMS (Warehouse & Logistics Management System)** adalah platform terpusat yang dirancang untuk mengelola seluruh rantai operasional pergudangan dan logistik distribusi **Complete Selular / Ocean Space**.
 
-Sistem ini menjembatani operasional fisik seluruh depo gudang dengan data transaksi penjualan sistem CSA (*Complete Selular Application*), audit finansial ekspedisi, optimalisasi perputaran stok (*Days of Sales/Stock*), serta otomasi kontrol mutu retur barang berbasis kecerdasan buatan (AI).
+Sistem ini menjembatani operasional fisik seluruh depo gudang dengan data transaksi penjualan sistem ERP CSA (*PT Citra Sabda Abadi*), audit finansial ekspedisi, optimalisasi perputaran stok (*Days of Sales/Stock*), serta otomasi kontrol mutu retur barang berbasis kecerdasan buatan (AI).
 
 ---
 
@@ -38,11 +38,11 @@ Sistem ini menjembatani operasional fisik seluruh depo gudang dengan data transa
 
 ---
 
-### 2. 📊 Sinkronisasi Otomatis Data Penjualan CSA ke Laporan Pengiriman (Automated CSA Logistics Logging)
-*Pengisian laporan pengiriman di spreadsheet/database dari data penjualan sistem CSA secara otomatis agar tim gudang tidak mengisi manual dan tidak ada data yang terlewat.*
+### 2. 📊 Sinkronisasi Otomatis Data Penjualan ERP CSA ke Laporan Pengiriman (Automated CSA ERP Logistics Logging)
+*Pengisian laporan pengiriman di spreadsheet/database dari data penjualan sistem ERP CSA (PT Citra Sabda Abadi) secara otomatis agar tim gudang tidak mengisi manual dan tidak ada data yang terlewat.*
 
 * **Cara Kerja & Mekanisme:**
-  1. **Background Ingestion dari CSA:** Sistem secara terjadwal (melalui worker/queue atau webhook) menarik data pesanan/penjualan yang berstatus siap kirim dari sistem CSA.
+  1. **Background Ingestion dari ERP CSA:** Sistem secara terjadwal (melalui worker/queue atau webhook) menarik data pesanan/penjualan yang berstatus siap kirim dari sistem ERP CSA (PT Citra Sabda Abadi).
   2. **Auto-Populate Laporan Pengiriman:**
      * Setiap pesanan otomatis dipetakan ke log pengiriman depo terkait: Nomor SO/DO, nama toko/pembeli/dealer, alamat tujuan, ekspedisi/kurir yang ditunjuk, jenis barang, dan kuantitas koli.
      * Menghilangkan proses input manual manual di Google Sheets/Excel oleh staf gudang yang rentan *human error*, terlambat diinput, atau tercecer.
@@ -139,14 +139,14 @@ Repositori ini dibangun menggunakan pondasi arsitektur modern berbasis Laravel d
 
 | Komponen | Spesifikasi & Paket | Keterangan |
 | :--- | :--- | :--- |
-| **Framework Backend** | [Laravel 13.x](file:///Users/apriansyahrs/Documents/Code/complete_selular/whms/composer.json#L12) + PHP 8.4 | Performa tinggi, native types, dan arsitektur enterprise |
-| **Admin Panel Engine** | [Filament v5.x](file:///Users/apriansyahrs/Documents/Code/complete_selular/whms/composer.json#L11) | Panel manajemen back-office yang reaktif dan dinamis |
-| **Panel Provider** | [AdminPanelProvider.php](file:///Users/apriansyahrs/Documents/Code/complete_selular/whms/app/Providers/Filament/AdminPanelProvider.php) | Admin interface (`/admin`) dengan navigasi terintegrasi |
-| **Role & Permission (RBAC)**| [Filament Shield](file:///Users/apriansyahrs/Documents/Code/complete_selular/whms/composer.json#L10) | Otorisasi hak akses granular berbasis role dan permission |
-| **Application Server** | [Laravel Octane](file:///Users/apriansyahrs/Documents/Code/complete_selular/whms/config/octane.php) + FrankenPHP | High-performance server runner & worker concurrency |
-| **Asynchronous Job / Queue**| [Laravel Horizon](file:///Users/apriansyahrs/Documents/Code/complete_selular/whms/composer.json#L13) | Manajemen antrean worker (sync CSA, upload Drive, komputasi DOS) |
-| **Log Monitoring** | [Opcodes Log Viewer](file:///Users/apriansyahrs/Documents/Code/complete_selular/whms/composer.json#L15) | Pemantauan error log sistem langsung dari antarmuka web |
-| **User Impersonation** | [Filament Impersonate](file:///Users/apriansyahrs/Documents/Code/complete_selular/whms/composer.json#L16) | Fitur pengujian dan peniruan sesi user untuk mempermudah audit operasional |
+| **Framework Backend** | [Laravel 13.x](composer.json) + PHP 8.4 | Performa tinggi, native types, dan arsitektur enterprise |
+| **Admin Panel Engine** | [Filament v5.x](composer.json) | Panel manajemen back-office yang reaktif dan dinamis |
+| **Panel Provider** | [`AdminPanelProvider.php`](app/Providers/Filament/AdminPanelProvider.php) | Admin interface (`/admin`) dengan navigasi terintegrasi |
+| **Role & Permission (RBAC)**| [Filament Shield](composer.json) | Otorisasi hak akses granular berbasis role dan permission |
+| **Application Server** | [Laravel Octane](config/octane.php) + FrankenPHP | High-performance server runner & worker concurrency |
+| **Asynchronous Job / Queue**| [Laravel Horizon](composer.json) | Manajemen antrean worker (sync CSA, upload Drive, komputasi DOS) |
+| **Log Monitoring** | [Opcodes Log Viewer](composer.json) | Pemantauan error log sistem langsung dari antarmuka web |
+| **User Impersonation** | [Filament Impersonate](composer.json) | Fitur pengujian dan peniruan sesi user untuk mempermudah audit operasional |
 
 ---
 
@@ -155,7 +155,7 @@ Repositori ini dibangun menggunakan pondasi arsitektur modern berbasis Laravel d
 ```text
 ├── Warehouses / Depots (Daftar gudang/depo cabang Ocean Space)
 ├── Expeditions & RateCards (Master ekspedisi, zona tujuan, tarif berat/volume, asuransi)
-├── CsaSalesOrders (Data tarikan penjualan dari sistem CSA)
+├── CsaSalesOrders (Data tarikan penjualan dari sistem ERP CSA - PT Citra Sabda Abadi)
 ├── ShipmentDeliveries (Laporan pengiriman riil per depo, nomor resi, kurir, status)
 ├── DeliveryProofs (Lampiran POD: foto penerima, SJ ttd, DO, link Google Drive)
 ├── FreightInvoices & AuditItems (Tagihan invoice ekspedisi, hasil rekonsiliasi, selisih biaya)
@@ -170,27 +170,27 @@ Repositori ini dibangun menggunakan pondasi arsitektur modern berbasis Laravel d
 
 ```mermaid
 flowchart TD
-    subgraph Input Data
-        CSA[Sistem Penjualan CSA] -->|Auto-Sync Orders| WHMS_Log[Laporan Pengiriman WHMS]
-        Exp_Inv[Invoice Tagihan Ekspedisi] -->|Upload File| WHMS_Recon[Modul Rekonsiliasi & Audit]
-        Gudang[Tim Depo / Kurir] -->|Upload Foto/SJ/DO| WHMS_POD[Modul Pelaporan POD]
-        Dealer[Dealer / Toko Rekanan] -->|Form + Foto Barang| WHMS_RMA[Modul Screening Retur AI]
+    subgraph Input_Data ["Input Data"]
+        CSA["ERP CSA (PT Citra Sabda Abadi)"] -->|Auto-Sync Orders| WHMS_Log["Laporan Pengiriman WHMS"]
+        Exp_Inv["Invoice Tagihan Ekspedisi"] -->|Upload File| WHMS_Recon["Modul Rekonsiliasi & Audit"]
+        Gudang["Tim Depo / Kurir"] -->|Upload Foto / SJ / DO| WHMS_POD["Modul Pelaporan POD"]
+        Dealer["Dealer / Toko Rekanan"] -->|Form + Foto Barang| WHMS_RMA["Modul Screening Retur AI"]
     end
 
-    subgraph WHMS Processing Engine
+    subgraph Processing_Engine ["WHMS Processing Engine"]
         WHMS_Log -->|Data Riil Pengiriman| WHMS_Recon
-        WHMS_Recon -->|Pencocokan Tarif & Resi| Fin_Approval[Otorisasi Pembayaran Ekspedisi]
+        WHMS_Recon -->|Pencocokan Tarif & Resi| Fin_Approval["Otorisasi Pembayaran Ekspedisi"]
         
-        WHMS_POD -->|Kompresi & Sync| GDrive[(Google Drive Perusahaan)]
+        WHMS_POD -->|Kompresi & Sync| GDrive[("Google Drive Perusahaan")]
         
-        WHMS_Log -->|Histori Penjualan| Stock_Engine[Engine Kalkulasi DOS]
-        Stock_Engine -->|Stok Terkini| Suggest_Transfer[Saran Alokasi Antar Gudang]
+        WHMS_Log -->|Histori Penjualan| Stock_Engine["Engine Kalkulasi DOS"]
+        Stock_Engine -->|Stok Terkini| Suggest_Transfer["Saran Alokasi Antar Gudang"]
         
-        Rate_Engine[Engine Analisa Biaya Kirim AI] -->|Komparasi Harga, ETA & Asuransi| Carrier_Choice[Rekomendasi Ekspedisi Terbaik]
+        Rate_Engine["Engine Analisa Biaya Kirim AI"] -->|Komparasi Harga, ETA & Asuransi| Carrier_Choice["Rekomendasi Ekspedisi Terbaik"]
         
-        WHMS_RMA -->|Computer Vision Screening| RMA_Decision{Layak Retur?}
-        RMA_Decision -->|Ya| Allow_Ship[Kirim Fisik ke Gudang Pusat]
-        RMA_Decision -->|Tidak| Reject_Ship[Ditolak Otomatis di Dealer]
+        WHMS_RMA -->|Computer Vision Screening| RMA_Decision{"Layak Retur?"}
+        RMA_Decision -->|Ya| Allow_Ship["Kirim Fisik ke Gudang Pusat"]
+        RMA_Decision -->|Tidak| Reject_Ship["Ditolak Otomatis di Dealer"]
     end
 ```
 
@@ -202,7 +202,7 @@ Melalui **Filament Shield**, akses fitur dibagi secara hierarkis:
 
 1. **Super Admin / Management:** Akses menyeluruh ke seluruh modul, konfigurasi tarif, monitoring Horizon, dan Log Viewer.
 2. **Finance & Accounting Logistik:** Akses ke audit invoice ekspedisi, persetujuan pembayaran, dan laporan selisih biaya.
-3. **Depo Warehouse Staff / Admin Gudang:** Mengakses order pengiriman CSA, mengunggah bukti POD (foto, SJ, DO), dan menerima transfer stok.
+3. **Depo Warehouse Staff / Admin Gudang:** Mengakses order pengiriman dari ERP CSA (PT Citra Sabda Abadi), mengunggah bukti POD (foto, SJ, DO), dan menerima transfer stok.
 4. **Logistics & Inventory Planner:** Mengakses analisis perputaran stok (DOS), rekomendasi transfer antar-depo, dan rekomendasi pemilihan ekspedisi.
 5. **Dealer / Mitra Retail:** Akses portal terbatas pengajuan klaim retur barang dan pemantauan status RMA.
 
@@ -221,8 +221,8 @@ Melalui **Filament Shield**, akses fitur dibagi secara hierarkis:
 
 1. **Clone repositori dan masuk ke direktori proyek:**
    ```bash
-   git clone <repository_url>
-   cd whms
+   git clone https://github.com/oceanspacedev/whms-web.git
+   cd whms-web
    ```
 
 2. **Install dependensi PHP & JavaScript:**
