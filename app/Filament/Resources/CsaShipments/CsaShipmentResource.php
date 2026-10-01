@@ -22,6 +22,8 @@ class CsaShipmentResource extends Resource
 
     protected static \UnitEnum|string|null $navigationGroup = 'Logistik & Ekspedisi';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $navigationLabel = 'Surat Jalan Pengiriman';
 
     protected static ?string $modelLabel = 'Pengiriman SJ';

@@ -50,5 +50,13 @@ class DatabaseSeeder extends Seeder
             ]
         );
         $user->syncRoles([$panelUserRole]);
+
+        $this->call([
+            WarehouseMappingSeeder::class,
+            ExpeditionSeeder::class,
+            ExpeditionRateCardSeeder::class,
+            TrackingOrderSeeder::class,
+            PurchaseOrderSeeder::class,
+        ]);
     }
 }

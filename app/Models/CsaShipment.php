@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class CsaShipment extends Model
 {
@@ -68,5 +69,13 @@ class CsaShipment extends Model
     public function import(): BelongsTo
     {
         return $this->belongsTo(CsaImport::class, 'csa_import_id');
+    }
+
+    /**
+     * @return HasOne<TrackingOrder, $this>
+     */
+    public function trackingOrder(): HasOne
+    {
+        return $this->hasOne(TrackingOrder::class, 'no_sj', 'no_sj');
     }
 }
