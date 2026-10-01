@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Pages\Auth\Login;
 use Apriansyahrs\MekayaTheme\MekayaPlugin;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
@@ -39,13 +40,15 @@ class AdminPanelProvider extends PanelProvider
                     ])
                     ->sidebarWidth('16rem'),
             )
+            ->brandName('WMS')
             ->viteTheme('resources/css/app.css')
             ->login(Login::class)
+            ->profile(EditProfile::class, isSimple: false)
             ->registration(null)
             ->passwordReset(null)
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn (): string => view('auth.login-extra')->render(),
+                fn () => view('auth.login-extra'),
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

@@ -265,6 +265,25 @@ class WhatsAppLoginTest extends TestCase
             ->assertRedirect('/admin');
     }
 
+    public function test_accepts_various_valid_indonesian_phone_formats(): void
+    {
+        $formats = [
+            '081812345',          // 9 digits
+            '0811123456',         // 10 digits
+            '081234567890',       // 12 digits
+            '08123456789012',     // 14 digits
+            '+62 813-3456-7890',  // formatted with symbols
+            '+62081434567890',    // with 620 prefix
+        ];
+
+        foreach ($formats as $phone) {
+            $user = $this->panelUser(['whatsapp_number' => $phone]);
+
+            $this->assertNotNull($user->whatsapp_verified_at);
+            $this->assertTrue(str_starts_with($user->whatsapp_number, '628'));
+        }
+    }
+
     /**
      * @param  array<string, mixed>  $attributes
      */

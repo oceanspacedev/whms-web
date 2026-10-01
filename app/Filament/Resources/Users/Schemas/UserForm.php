@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\WhatsAppNumber;
 use Closure;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -21,6 +22,17 @@ class UserForm
             ->components([
                 Section::make('User Details')
                     ->schema([
+                        FileUpload::make('avatar_url')
+                            ->label('Foto Profil')
+                            ->avatar()
+                            ->alignCenter()
+                            ->directory('avatars')
+                            ->disk('public')
+                            ->visibility('public')
+                            ->imageEditor()
+                            ->circleCropper()
+                            ->maxSize(2048)
+                            ->columnSpanFull(),
                         TextInput::make('name')
                             ->required()
                             ->maxLength(255),
@@ -63,10 +75,10 @@ class UserForm
                             ->label('Email verified at')
                             ->nullable(),
                         TextInput::make('whatsapp_number')
-                            ->label('WhatsApp number')
+                            ->label('Nomor WhatsApp')
                             ->tel()
                             ->maxLength(30)
-                            ->helperText('Contoh 081234567890. Isi waktu verifikasi agar user bisa masuk lewat WhatsApp.')
+                            ->helperText('Contoh: 081234567890 atau +6281234567890. Otomatis aktif untuk login WhatsApp.')
                             ->dehydrateStateUsing(function (?string $state): ?string {
                                 if (blank($state)) {
                                     return null;
@@ -99,9 +111,6 @@ class UserForm
                                     }
                                 },
                             ]),
-                        DateTimePicker::make('whatsapp_verified_at')
-                            ->label('WhatsApp verified at')
-                            ->nullable(),
                         TextInput::make('password')
                             ->password()
                             ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? Hash::make($state) : null)

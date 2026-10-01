@@ -7,18 +7,20 @@ use App\Support\WhatsAppNumber;
 use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'username', 'email', 'password', 'whatsapp_number', 'whatsapp_verified_at'])]
+#[Fillable(['name', 'username', 'email', 'password', 'whatsapp_number', 'whatsapp_verified_at', 'avatar_url'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasPanelShield, HasRoles, Notifiable;
@@ -40,8 +42,8 @@ class User extends Authenticatable implements FilamentUser
 
             $user->whatsapp_number = WhatsAppNumber::normalize((string) $user->whatsapp_number);
 
-            if ($user->isDirty('whatsapp_number') && ! $user->isDirty('whatsapp_verified_at')) {
-                $user->whatsapp_verified_at = null;
+            if (($user->isDirty('whatsapp_number') || blank($user->whatsapp_verified_at)) && ! $user->isDirty('whatsapp_verified_at')) {
+                $user->whatsapp_verified_at = now();
             }
         });
     }
@@ -71,5 +73,18 @@ class User extends Authenticatable implements FilamentUser
     public function canBeImpersonated(): bool
     {
         return ! $this->hasRole('super_admin');
+    }
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        if (blank($this->avatar_url)) {
+            return null;
+        }
+
+        if (str_starts_with($this->avatar_url, 'http://') || str_starts_with($this->avatar_url, 'https://')) {
+            return $this->avatar_url;
+        }
+
+        return Storage::disk('public')->url($this->avatar_url);
     }
 }

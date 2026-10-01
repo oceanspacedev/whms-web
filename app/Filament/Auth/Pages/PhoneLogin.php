@@ -13,12 +13,18 @@ use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Schema;
+use Filament\Support\Facades\FilamentIcon;
+use Filament\Support\Icons\Heroicon;
+use Filament\View\PanelsIconAlias;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
 use Throwable;
 
 /**
+ * @property-read Action $loginAction
  * @property-read Schema $form
  */
 class PhoneLogin extends SimplePage
@@ -32,20 +38,15 @@ class PhoneLogin extends SimplePage
 
     public bool $awaitingOtp = false;
 
-    public function boot(): void
-    {
-        if (Filament::getCurrentPanel() !== null) {
-            return;
-        }
-
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::bootCurrentPanel();
-    }
-
     public function mount(): void
     {
+        if (Filament::getCurrentPanel() === null) {
+            Filament::setCurrentPanel(Filament::getPanel('admin'));
+            Filament::bootCurrentPanel();
+        }
+
         if (Filament::auth()->check()) {
-            $this->redirect(Filament::getUrl());
+            redirect()->intended(Filament::getUrl());
         }
 
         $this->maxWidth = 'full';
@@ -55,16 +56,6 @@ class PhoneLogin extends SimplePage
     public function send(WhatsAppOtpService $otpService): void
     {
         $data = $this->form->getState();
-        $ipKey = 'whatsapp-otp:ip:'.sha1((string) request()->ip());
-
-        if (RateLimiter::tooManyAttempts($ipKey, 10)) {
-            throw ValidationException::withMessages([
-                'data.whatsapp_number' => 'Terlalu banyak permintaan OTP. Coba lagi sebentar lagi.',
-            ]);
-        }
-
-        RateLimiter::hit($ipKey, 600);
-
         $number = $this->normalizeWhatsAppNumber($data['whatsapp_number'] ?? null);
 
         if (! $number) {
@@ -73,15 +64,15 @@ class PhoneLogin extends SimplePage
             ]);
         }
 
-        $numberKey = 'whatsapp-otp:number:'.hash('sha256', $number);
+        $rateKey = 'whatsapp-otp:filament:'.md5($number).':'.request()->ip();
 
-        if (RateLimiter::tooManyAttempts($numberKey, 3)) {
+        if (RateLimiter::tooManyAttempts($rateKey, 3)) {
             throw ValidationException::withMessages([
                 'data.whatsapp_number' => 'Terlalu banyak permintaan OTP. Coba lagi sebentar lagi.',
             ]);
         }
 
-        RateLimiter::hit($numberKey, 300);
+        RateLimiter::hit($rateKey, 300);
 
         $user = $this->findEligibleWebUserByWhatsApp($number);
 
@@ -93,7 +84,7 @@ class PhoneLogin extends SimplePage
 
         try {
             $otpService->issue($user, $number, WhatsappOtp::PURPOSE_LOGIN);
-        } catch (Throwable) {
+        } catch (RuntimeException|Throwable) {
             throw ValidationException::withMessages([
                 'data.whatsapp_number' => 'OTP belum bisa dikirim ke WhatsApp. Coba lagi sebentar lagi.',
             ]);
@@ -131,10 +122,10 @@ class PhoneLogin extends SimplePage
             ]);
         }
 
-        Filament::auth()->login($user, true);
+        Auth::login($user, true);
         session()->regenerate();
 
-        $this->redirect(Filament::getUrl());
+        $this->redirect('/admin');
     }
 
     public function changePhone(): void
@@ -172,6 +163,18 @@ class PhoneLogin extends SimplePage
         ]);
     }
 
+    public function loginAction(): Action
+    {
+        return Action::make('login')
+            ->link()
+            ->label('Kembali ke halaman masuk')
+            ->icon(match (__('filament-panels::layout.direction')) {
+                'rtl' => FilamentIcon::resolve(PanelsIconAlias::PAGES_PASSWORD_RESET_REQUEST_PASSWORD_RESET_ACTIONS_LOGIN_RTL) ?? Heroicon::ArrowRight,
+                default => FilamentIcon::resolve(PanelsIconAlias::PAGES_PASSWORD_RESET_REQUEST_PASSWORD_RESET_ACTIONS_LOGIN) ?? Heroicon::ArrowLeft,
+            })
+            ->url(filament()->getLoginUrl());
+    }
+
     public function getTitle(): string|Htmlable
     {
         return 'Masuk dengan WhatsApp';
@@ -182,31 +185,14 @@ class PhoneLogin extends SimplePage
         return 'Masuk dengan WhatsApp';
     }
 
-    public function getSubheading(): string|Htmlable|null
-    {
-        if ($this->awaitingOtp) {
-            return 'Masukkan 6 digit kode yang dikirim ke WhatsApp.';
-        }
-
-        return 'Gunakan nomor WhatsApp yang sudah diverifikasi.';
-    }
-
     /**
      * @return array<Action>
      */
     protected function getFormActions(): array
     {
-        $actions = [
+        return [
             $this->awaitingOtp ? $this->getVerifyFormAction() : $this->getSendFormAction(),
         ];
-
-        if ($this->awaitingOtp) {
-            $actions[] = $this->getChangePhoneFormAction();
-        }
-
-        $actions[] = $this->getBackToLoginFormAction();
-
-        return $actions;
     }
 
     protected function getSendFormAction(): Action
@@ -223,37 +209,25 @@ class PhoneLogin extends SimplePage
             ->submit('verify');
     }
 
-    protected function getChangePhoneFormAction(): Action
-    {
-        return Action::make('changePhone')
-            ->label('Ganti nomor atau kirim ulang OTP')
-            ->color('gray')
-            ->link()
-            ->action('changePhone');
-    }
-
-    protected function getBackToLoginFormAction(): Action
-    {
-        return Action::make('backToLogin')
-            ->label('Kembali ke halaman masuk')
-            ->color('gray')
-            ->link()
-            ->url(fn (): string => filament()->getLoginUrl());
-    }
-
     protected function hasFullWidthFormActions(): bool
     {
         return true;
     }
 
-    public function getView(): string
+    public function getSubheading(): string|Htmlable|null
     {
-        return 'filament.auth.phone-login';
-    }
+        if ($this->awaitingOtp) {
+            return Action::make('changePhone')
+                ->link()
+                ->label('Ganti nomor atau kirim ulang OTP')
+                ->action('changePhone');
+        }
 
-    public function hasLogo(): bool
-    {
-        return false;
+        if (! filament()->hasLogin()) {
+            return null;
+        }
+
+        return $this->loginAction;
     }
 
     public function content(Schema $schema): Schema
@@ -269,5 +243,15 @@ class PhoneLogin extends SimplePage
                         ->key('form-actions'),
                 ]),
         ]);
+    }
+
+    public function getView(): string
+    {
+        return 'filament.auth.phone-login';
+    }
+
+    public function hasLogo(): bool
+    {
+        return false;
     }
 }

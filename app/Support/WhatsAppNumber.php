@@ -8,6 +8,10 @@ class WhatsAppNumber
     {
         $digits = preg_replace('/\D+/', '', (string) $value) ?? '';
 
+        if (str_starts_with($digits, '00')) {
+            $digits = substr($digits, 2);
+        }
+
         if (str_starts_with($digits, '620')) {
             return '62'.substr($digits, 3);
         }
@@ -23,9 +27,23 @@ class WhatsAppNumber
         return $digits;
     }
 
-    public static function isValid(string $value): bool
+    public static function isValid(?string $value): bool
     {
-        return preg_match('/^628\d{8,12}$/', $value) === 1;
+        if (blank($value)) {
+            return false;
+        }
+
+        $normalized = self::normalize($value);
+
+        if (str_starts_with($normalized, '628')) {
+            return preg_match('/^628\d{6,13}$/', $normalized) === 1;
+        }
+
+        if (str_starts_with($normalized, '62')) {
+            return preg_match('/^62\d{7,14}$/', $normalized) === 1;
+        }
+
+        return preg_match('/^[1-9]\d{7,14}$/', $normalized) === 1;
     }
 
     public static function mask(string $value): string
