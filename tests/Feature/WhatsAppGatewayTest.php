@@ -32,9 +32,9 @@ class WhatsAppGatewayTest extends TestCase
                 && $request['recipient']['type'] === 'phone'
                 && $request['recipient']['value'] === '6281234567890'
                 && $request['message']['text'] === 'kode 123456'
-                && $request['client_reference'] === 'whms'
+                && $request['client_reference'] === 'wms'
                 && $request->hasHeader('Authorization', 'Bearer test-token')
-                && str_starts_with((string) $idempotency, 'whms-');
+                && str_starts_with((string) $idempotency, 'wms-');
         });
     }
 

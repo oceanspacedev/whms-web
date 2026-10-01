@@ -1,9 +1,9 @@
 /**
- * WHMS - Warehouse & Logistics Management System
+ * WMS - Warehouse & Logistics Management System
  * Complete Selular / Ocean Space
  * 
  * Google Apps Script Webhook
- * Menangani penambahan baris pengiriman dari CSA WHMS ke masing-masing sheet cabang
+ * Menangani penambahan baris pengiriman dari CSA WMS ke masing-masing sheet cabang
  * dan mencegah duplikasi Nomor Surat Jalan (SJ).
  * 
  * PANDUAN DEPLOY:
@@ -12,11 +12,11 @@
  * 3. Hapus kode default dan paste kode ini
  * 4. Klik tombol "Deploy" (Terapkan) -> "New deployment" (Penerapan baru)
  * 5. Pilih type: "Web app" (Aplikasi web)
- * 6. Set Description: "WHMS Webhook"
+ * 6. Set Description: "WMS Webhook"
  * 7. Set Execute as: "Me" (Saya)
  * 8. Set Who has access: "Anyone" (Siapa saja)
  * 9. Klik "Deploy", izinkan hak akses (Authorize access), lalu salin "Web app URL"
- * 10. Simpan URL tersebut di file .env (GOOGLE_SHEET_WEBHOOK_URL) atau form WHMS Filament.
+ * 10. Simpan URL tersebut di file .env (GOOGLE_SHEET_WEBHOOK_URL) atau form WMS Filament.
  */
 
 function doPost(e) {
@@ -121,6 +121,6 @@ function doPost(e) {
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: "active",
-    message: "WHMS Google Sheets Webhook is ready!"
+    message: "WMS Google Sheets Webhook is ready!"
   })).setMimeType(ContentService.MimeType.JSON);
 }

@@ -1,4 +1,4 @@
-# WHMS - Warehouse & Logistics Management System
+# WMS - Warehouse & Logistics Management System
 ### Complete Selular • Ocean Space Logistics Platform
 
 [![Laravel](https://img.shields.io/badge/Laravel-13.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
@@ -13,7 +13,7 @@
 
 ## 📌 Ringkasan Sistem (Overview)
 
-**WHMS (Warehouse & Logistics Management System)** adalah platform terpusat yang dirancang untuk mengelola seluruh rantai operasional pergudangan dan logistik distribusi **Complete Selular / Ocean Space**.
+**WMS (Warehouse & Logistics Management System)** adalah platform terpusat yang dirancang untuk mengelola seluruh rantai operasional pergudangan dan logistik distribusi **Complete Selular / Ocean Space**.
 
 Sistem ini menjembatani operasional fisik seluruh depo gudang dengan data transaksi penjualan sistem ERP CSA (*PT Citra Sabda Abadi*), audit finansial ekspedisi, optimalisasi perputaran stok (*Days of Sales/Stock*), serta otomasi kontrol mutu retur barang berbasis kecerdasan buatan (AI).
 
@@ -171,24 +171,24 @@ Repositori ini dibangun menggunakan pondasi arsitektur modern berbasis Laravel d
 ```mermaid
 flowchart TD
     subgraph Input_Data ["Input Data"]
-        CSA["ERP CSA (PT Citra Sabda Abadi)"] -->|Auto-Sync Orders| WHMS_Log["Laporan Pengiriman WHMS"]
-        Exp_Inv["Invoice Tagihan Ekspedisi"] -->|Upload File| WHMS_Recon["Modul Rekonsiliasi & Audit"]
-        Gudang["Tim Depo / Kurir"] -->|Upload Foto / SJ / DO| WHMS_POD["Modul Pelaporan POD"]
-        Dealer["Dealer / Toko Rekanan"] -->|Form + Foto Barang| WHMS_RMA["Modul Screening Retur AI"]
+        CSA["ERP CSA (PT Citra Sabda Abadi)"] -->|Auto-Sync Orders| WMS_Log["Laporan Pengiriman WMS"]
+        Exp_Inv["Invoice Tagihan Ekspedisi"] -->|Upload File| WMS_Recon["Modul Rekonsiliasi & Audit"]
+        Gudang["Tim Depo / Kurir"] -->|Upload Foto / SJ / DO| WMS_POD["Modul Pelaporan POD"]
+        Dealer["Dealer / Toko Rekanan"] -->|Form + Foto Barang| WMS_RMA["Modul Screening Retur AI"]
     end
 
-    subgraph Processing_Engine ["WHMS Processing Engine"]
-        WHMS_Log -->|Data Riil Pengiriman| WHMS_Recon
-        WHMS_Recon -->|Pencocokan Tarif & Resi| Fin_Approval["Otorisasi Pembayaran Ekspedisi"]
+    subgraph Processing_Engine ["WMS Processing Engine"]
+        WMS_Log -->|Data Riil Pengiriman| WMS_Recon
+        WMS_Recon -->|Pencocokan Tarif & Resi| Fin_Approval["Otorisasi Pembayaran Ekspedisi"]
         
-        WHMS_POD -->|Kompresi & Sync| GDrive[("Google Drive Perusahaan")]
+        WMS_POD -->|Kompresi & Sync| GDrive[("Google Drive Perusahaan")]
         
-        WHMS_Log -->|Histori Penjualan| Stock_Engine["Engine Kalkulasi DOS"]
+        WMS_Log -->|Histori Penjualan| Stock_Engine["Engine Kalkulasi DOS"]
         Stock_Engine -->|Stok Terkini| Suggest_Transfer["Saran Alokasi Antar Gudang"]
         
         Rate_Engine["Engine Analisa Biaya Kirim AI"] -->|Komparasi Harga, ETA & Asuransi| Carrier_Choice["Rekomendasi Ekspedisi Terbaik"]
         
-        WHMS_RMA -->|Computer Vision Screening| RMA_Decision{"Layak Retur?"}
+        WMS_RMA -->|Computer Vision Screening| RMA_Decision{"Layak Retur?"}
         RMA_Decision -->|Ya| Allow_Ship["Kirim Fisik ke Gudang Pusat"]
         RMA_Decision -->|Tidak| Reject_Ship["Ditolak Otomatis di Dealer"]
     end
@@ -221,8 +221,8 @@ Melalui **Filament Shield**, akses fitur dibagi secara hierarkis:
 
 1. **Clone repositori dan masuk ke direktori proyek:**
    ```bash
-   git clone https://github.com/oceanspacedev/whms-web.git
-   cd whms-web
+   git clone https://github.com/oceanspacedev/wms-web.git
+   cd wms-web
    ```
 
 2. **Install dependensi PHP & JavaScript:**

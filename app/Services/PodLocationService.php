@@ -16,7 +16,7 @@ class PodLocationService
         try {
             $response = Http::timeout(3)
                 ->withHeaders([
-                    'User-Agent' => 'WHMS-Logistics/1.0 (contact@whms.internal)',
+                    'User-Agent' => 'WMS-Logistics/1.0 (contact@wms.internal)',
                 ])
                 ->get('https://nominatim.openstreetmap.org/reverse', [
                     'format' => 'json',

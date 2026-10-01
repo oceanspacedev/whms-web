@@ -46,7 +46,7 @@ class WhatsAppGateway
                 ->connectTimeout((float) config('services.whatsapp_gateway.connect_timeout', 5))
                 ->timeout((float) config('services.whatsapp_gateway.timeout', 15))
                 ->withHeaders([
-                    'Idempotency-Key' => 'whms-'.(string) Str::uuid(),
+                    'Idempotency-Key' => 'wms-'.(string) Str::uuid(),
                 ])
                 ->post($this->messagesEndpoint($url), [
                     'recipient' => [
@@ -60,7 +60,7 @@ class WhatsAppGateway
                     'purpose' => 'notification',
                     'mode' => 'sync',
                     'route_key' => 'default',
-                    'client_reference' => 'whms',
+                    'client_reference' => 'wms',
                 ]);
         } catch (\Throwable $exception) {
             Log::error('Gagal mengirim pesan WhatsApp via WAG.', [
