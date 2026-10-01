@@ -35,20 +35,28 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@example.com'],
             [
                 'name' => 'Super Admin',
+                'username' => 'admin',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]
         );
+        if (blank($admin->username)) {
+            $admin->forceFill(['username' => 'admin'])->save();
+        }
         $admin->syncRoles([$superAdminRole]);
 
         $user = User::firstOrCreate(
             ['email' => 'user@example.com'],
             [
                 'name' => 'Panel User',
+                'username' => 'user',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]
         );
+        if (blank($user->username)) {
+            $user->forceFill(['username' => 'user'])->save();
+        }
         $user->syncRoles([$panelUserRole]);
 
         $this->call([

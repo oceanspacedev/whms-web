@@ -40,4 +40,15 @@ return [
         'spreadsheet_id' => env('GOOGLE_SPREADSHEET_ID', '1AQ7h3_bPRpCcCy5CZav7vfe1p_flt7mWRLUr0byw1a0'),
     ],
 
+    'whatsapp' => [
+        'otp_expires_in' => (int) env('WHATSAPP_OTP_EXPIRES_IN', 300),
+    ],
+
+    'whatsapp_gateway' => [
+        'url' => env('WAG_URL'),
+        'token' => env('WAG_TOKEN'),
+        'timeout' => (float) env('WAG_TIMEOUT', 15),
+        'connect_timeout' => (float) env('WAG_CONNECT_TIMEOUT', 5),
+    ],
+
 ];

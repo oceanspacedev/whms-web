@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,6 +24,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('api-login', function (Request $request): Limit {
+            $login = Str::lower($request->string('login')->toString().'|'.$request->string('whatsapp_number')->toString());
+
+            return Limit::perMinute(5)->by(Str::transliterate($login.'|'.$request->ip()));
+        });
+
         Gate::define('viewLogViewer', function ($user = null): bool {
             return (bool) (
                 $user?->hasRole('super_admin')

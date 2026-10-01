@@ -3,21 +3,29 @@
 namespace Tests\Feature;
 
 use App\Models\TrackingOrder;
+use App\Models\User;
 use Database\Seeders\TrackingOrderSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class TrackingOrderApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_guest_cannot_list_tracking_orders(): void
+    {
+        $this->getJson('/api/tracking-orders')->assertUnauthorized();
+    }
+
     public function test_can_list_tracking_orders_and_filter_by_courier(): void
     {
+        $this->actAsCourier();
         $this->seed(TrackingOrderSeeder::class);
 
-        $response = $this->getJson('/api/v1/tracking-orders?kurir=Heidy');
+        $response = $this->getJson('/api/tracking-orders?kurir=Heidy');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -49,23 +57,25 @@ class TrackingOrderApiTest extends TestCase
 
     public function test_can_find_tracking_order_by_surat_jalan_barcode(): void
     {
+        $this->actAsCourier();
         $this->seed(TrackingOrderSeeder::class);
 
         $order = TrackingOrder::firstOrFail();
 
-        $response = $this->getJson("/api/v1/tracking-orders/by-sj/{$order->no_sj}");
+        $response = $this->getJson("/api/tracking-orders/by-sj/{$order->no_sj}");
 
         $response->assertStatus(200)
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.no_sj', $order->no_sj);
 
-        $notFound = $this->getJson('/api/v1/tracking-orders/by-sj/NON-EXISTENT-SJ-999');
+        $notFound = $this->getJson('/api/tracking-orders/by-sj/NON-EXISTENT-SJ-999');
         $notFound->assertStatus(404)
             ->assertJsonPath('success', false);
     }
 
     public function test_courier_can_upload_pod_photos_and_mark_as_delivered(): void
     {
+        $this->actAsCourier();
         Storage::fake('public');
 
         $order = TrackingOrder::create([
@@ -91,7 +101,7 @@ class TrackingOrderApiTest extends TestCase
             'foto_penerima' => $penerimaImage,
         ];
 
-        $response = $this->postJson("/api/v1/tracking-orders/{$order->id}/submit-pod", $payload);
+        $response = $this->postJson("/api/tracking-orders/{$order->id}/submit-pod", $payload);
 
         $response->assertStatus(200)
             ->assertJsonPath('success', true)
@@ -112,6 +122,7 @@ class TrackingOrderApiTest extends TestCase
 
     public function test_courier_can_submit_pod_directly_by_no_sj(): void
     {
+        $this->actAsCourier();
         Storage::fake('public');
 
         $order = TrackingOrder::create([
@@ -120,7 +131,7 @@ class TrackingOrderApiTest extends TestCase
             'status' => 'PENDING',
         ]);
 
-        $response = $this->postJson('/api/v1/tracking-orders/by-sj/SJ-DIRECT-SCAN-889/submit-pod', [
+        $response = $this->postJson('/api/tracking-orders/by-sj/SJ-DIRECT-SCAN-889/submit-pod', [
             'nama_penerima' => 'Pak Hendra',
             'notes' => 'Diserahkan langsung ke pemilik toko',
         ]);
@@ -136,14 +147,15 @@ class TrackingOrderApiTest extends TestCase
 
     public function test_can_get_courier_drivers_list_and_summary(): void
     {
+        $this->actAsCourier();
         $this->seed(TrackingOrderSeeder::class);
 
-        $driversResponse = $this->getJson('/api/v1/courier/drivers');
+        $driversResponse = $this->getJson('/api/courier/drivers');
         $driversResponse->assertStatus(200)
             ->assertJsonPath('success', true)
             ->assertJsonStructure(['data']);
 
-        $summaryResponse = $this->getJson('/api/v1/courier/summary?kurir=Heidy');
+        $summaryResponse = $this->getJson('/api/courier/summary?kurir=Heidy');
         $summaryResponse->assertStatus(200)
             ->assertJsonPath('success', true)
             ->assertJsonStructure([
@@ -160,6 +172,7 @@ class TrackingOrderApiTest extends TestCase
 
     public function test_auto_resolves_location_and_stamps_photo_when_courier_only_sends_coordinates(): void
     {
+        $this->actAsCourier();
         Storage::fake('public');
 
         $order = TrackingOrder::create([
@@ -172,7 +185,7 @@ class TrackingOrderApiTest extends TestCase
         $photo = UploadedFile::fake()->image('pod_captured.jpg', 1000, 800);
 
         // Courier takes photo and only GPS coordinates are sent from device, address is empty!
-        $response = $this->postJson("/api/v1/tracking-orders/{$order->id}/submit-pod", [
+        $response = $this->postJson("/api/tracking-orders/{$order->id}/submit-pod", [
             'nama_penerima' => 'Pak Joko',
             'latitude' => -6.903890,
             'longitude' => 107.618610,
@@ -191,5 +204,15 @@ class TrackingOrderApiTest extends TestCase
         // Photo was saved with watermark to public storage
         $this->assertNotNull($order->foto_penerima);
         Storage::disk('public')->assertExists($order->foto_penerima);
+    }
+
+    private function actAsCourier(): User
+    {
+        $role = Role::findOrCreate('panel_user', 'web');
+        $user = User::factory()->create();
+        $user->assignRole($role);
+        $this->actingAs($user, 'sanctum');
+
+        return $user;
     }
 }

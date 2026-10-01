@@ -20,10 +20,18 @@ class UsersTable
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('username')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('email')
                     ->label('Email address')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('whatsapp_number')
+                    ->label('WhatsApp')
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('roles.name')
                     ->label('Roles')
                     ->badge()

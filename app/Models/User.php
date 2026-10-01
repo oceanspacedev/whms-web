@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Support\WhatsAppNumber;
 use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
@@ -11,14 +12,39 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'username', 'email', 'password', 'whatsapp_number', 'whatsapp_verified_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasPanelShield, HasRoles, Notifiable;
+    use HasApiTokens, HasFactory, HasPanelShield, HasRoles, Notifiable;
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user): void {
+            if (is_string($user->username)) {
+                $username = Str::lower(trim($user->username));
+                $user->username = $username === '' ? null : $username;
+            }
+
+            if (blank($user->whatsapp_number)) {
+                $user->whatsapp_number = null;
+                $user->whatsapp_verified_at = null;
+
+                return;
+            }
+
+            $user->whatsapp_number = WhatsAppNumber::normalize((string) $user->whatsapp_number);
+
+            if ($user->isDirty('whatsapp_number') && ! $user->isDirty('whatsapp_verified_at')) {
+                $user->whatsapp_verified_at = null;
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -29,6 +55,7 @@ class User extends Authenticatable implements FilamentUser
     {
         return [
             'email_verified_at' => 'datetime',
+            'whatsapp_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
