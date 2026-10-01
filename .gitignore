@@ -32,3 +32,9 @@ Thumbs.db
 **/caddy
 frankenphp
 frankenphp-worker.php
+
+*.xlsx
+*.xls
+*.csv
+*.docx
+*.doc

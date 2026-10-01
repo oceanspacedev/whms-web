@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Filament\Resources\FreightInvoices\Pages;
+
+use App\Filament\Resources\FreightInvoices\FreightInvoiceResource;
+use App\Jobs\ProcessFreightReconciliationJob;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification;
+use Filament\Resources\Pages\ViewRecord;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+class ViewFreightInvoice extends ViewRecord
+{
+    protected static string $resource = FreightInvoiceResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('exportDispute')
+                ->label('Download Berita Acara Selisih (CSV)')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('danger')
+                ->visible(fn (): bool => $this->record->total_discrepancy_amount > 0)
+                ->action(function (): StreamedResponse {
+                    $invoice = $this->record;
+                    $filename = "Berita_Acara_Koreksi_Tagihan_{$invoice->invoice_number}.csv";
+
+                    return response()->streamDownload(function () use ($invoice) {
+                        $output = fopen('php://output', 'w');
+
+                        // UTF-8 BOM for Excel compatibility
+                        fwrite($output, "\xEF\xBB\xBF");
+
+                        // Headers
+                        fputcsv($output, [
+                            'Nomor Resi / AWB',
+                            'Nomor SJ',
+                            'Depo Asal',
+                            'Kota Tujuan',
+                            'Berat Tagihan (kg)',
+                            'Berat Riil Gudang (kg)',
+                            'Selisih Berat (kg)',
+                            'Tarif Tagihan (Rp/kg)',
+                            'Tarif Kontrak PKS (Rp/kg)',
+                            'Total Tagihan Ekspedisi (Rp)',
+                            'Total Sesuai Kontrak (Rp)',
+                            'Nilai Koreksi / Potongan (Rp)',
+                            'Status Temuan',
+                            'Keterangan Audit',
+                        ]);
+
+                        $items = $invoice->items()->where('audit_status', '!=', 'matched')->get();
+                        foreach ($items as $item) {
+                            fputcsv($output, [
+                                $item->no_resi_awb,
+                                $item->no_sj ?? '-',
+                                $item->origin_depo ?? '-',
+                                $item->destination_city ?? '-',
+                                $item->billed_weight,
+                                $item->actual_weight ?? 0,
+                                $item->weight_discrepancy,
+                                $item->billed_rate,
+                                $item->agreed_rate,
+                                $item->billed_total,
+                                $item->expected_total,
+                                $item->discrepancy_amount,
+                                strtoupper($item->audit_status),
+                                $item->audit_notes,
+                            ]);
+                        }
+
+                        fclose($output);
+                    }, $filename, [
+                        'Content-Type' => 'text/csv; charset=UTF-8',
+                    ]);
+                }),
+
+            Action::make('approve')
+                ->label('Setujui Pembayaran')
+                ->icon('heroicon-o-check-circle')
+                ->color('success')
+                ->visible(fn (): bool => in_array($this->record->status, ['audited', 'disputed']))
+                ->requiresConfirmation()
+                ->modalHeading('Konfirmasi Persetujuan Pembayaran')
+                ->modalDescription(fn () => "Setujui tagihan faktur #{$this->record->invoice_number} sebesar Rp ".number_format($this->record->total_approved_amount, 0, ',', '.').' (Setelah dipotong selisih Rp '.number_format($this->record->total_discrepancy_amount, 0, ',', '.').')?')
+                ->action(function (): void {
+                    $this->record->update(['status' => 'approved']);
+
+                    Notification::make()
+                        ->title('Tagihan Disetujui')
+                        ->body('Faktur telah disetujui sebesar Rp '.number_format($this->record->total_approved_amount, 0, ',', '.'))
+                        ->success()
+                        ->send();
+                }),
+
+            Action::make('reAudit')
+                ->label('Audit Ulang')
+                ->icon('heroicon-o-arrow-path')
+                ->color('gray')
+                ->requiresConfirmation()
+                ->action(function (): void {
+                    ProcessFreightReconciliationJob::dispatch($this->record);
+
+                    Notification::make()
+                        ->title('Audit Ulang Dimulai')
+                        ->body('Mesin audit sedang memverifikasi ulang seluruh nomor resi.')
+                        ->info()
+                        ->send();
+                }),
+        ];
+    }
+}

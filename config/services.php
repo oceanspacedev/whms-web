@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'google_sheets' => [
+        'webhook_url' => env('GOOGLE_SHEET_WEBHOOK_URL', ''),
+        'spreadsheet_id' => env('GOOGLE_SPREADSHEET_ID', '1AQ7h3_bPRpCcCy5CZav7vfe1p_flt7mWRLUr0byw1a0'),
+    ],
+
 ];
