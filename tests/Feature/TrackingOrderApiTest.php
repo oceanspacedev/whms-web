@@ -206,6 +206,74 @@ class TrackingOrderApiTest extends TestCase
         Storage::disk('public')->assertExists($order->foto_penerima);
     }
 
+    public function test_user_can_create_tracking_order_via_api(): void
+    {
+        $user = $this->actAsCourier();
+        Storage::fake('public');
+
+        $notaSjImage = UploadedFile::fake()->image('nota_sj.jpg', 600, 400);
+
+        $payload = [
+            'no_sj' => 'SJ-MOBILE-NEW-999',
+            'nama_dealer' => 'Toko Abadi Jaya Selular',
+            'alamat_dealer' => 'Jl. Asia Afrika No. 45, Bandung',
+            'jumlah_value_nota' => 1500000,
+            'tanggal_nota' => '2026-10-02',
+            'tanggal_pengiriman' => '2026-10-02',
+            'nama_pengirim' => 'Supir Budi',
+            'status' => 'IN_TRANSIT',
+            'notes' => 'Pengiriman koli 3 box handphone',
+            'foto_nota_sj' => $notaSjImage,
+        ];
+
+        $response = $this->postJson('/api/tracking-orders', $payload);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.no_sj', 'SJ-MOBILE-NEW-999')
+            ->assertJsonPath('data.nama_dealer', 'Toko Abadi Jaya Selular')
+            ->assertJsonPath('data.status', 'IN_TRANSIT');
+
+        $this->assertDatabaseHas('tracking_orders', [
+            'no_sj' => 'SJ-MOBILE-NEW-999',
+            'nama_dealer' => 'Toko Abadi Jaya Selular',
+            'status' => 'IN_TRANSIT',
+        ]);
+
+        $order = TrackingOrder::where('no_sj', 'SJ-MOBILE-NEW-999')->firstOrFail();
+        $this->assertNotNull($order->foto_nota_sj);
+        Storage::disk('public')->assertExists($order->foto_nota_sj);
+    }
+
+    public function test_user_cannot_create_tracking_order_with_duplicate_no_sj(): void
+    {
+        $this->actAsCourier();
+
+        TrackingOrder::create([
+            'no_sj' => 'SJ-EXISTING-123',
+            'nama_dealer' => 'Dealer Lama',
+            'status' => 'IN_TRANSIT',
+        ]);
+
+        $response = $this->postJson('/api/tracking-orders', [
+            'no_sj' => 'SJ-EXISTING-123',
+            'nama_dealer' => 'Dealer Baru',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['no_sj']);
+    }
+
+    public function test_user_cannot_create_tracking_order_without_required_fields(): void
+    {
+        $this->actAsCourier();
+
+        $response = $this->postJson('/api/tracking-orders', []);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['no_sj', 'nama_dealer']);
+    }
+
     private function actAsCourier(): User
     {
         $role = Role::findOrCreate('panel_user', 'web');

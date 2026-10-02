@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\CreateTrackingOrderRequest;
 use App\Http\Requests\Api\V1\SubmitPodRequest;
 use App\Http\Resources\Api\V1\TrackingOrderResource;
 use App\Models\TrackingOrder;
@@ -19,6 +20,49 @@ class TrackingOrderApiController extends Controller
     public function __construct(
         protected PodLocationService $locationService,
     ) {}
+
+    /**
+     * Create a new tracking order (Surat Jalan) from mobile app or API.
+     */
+    public function store(CreateTrackingOrderRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+
+        $senderName = $validated['nama_pengirim']
+            ?? $request->user()?->nama_lengkap
+            ?? $request->user()?->name
+            ?? $request->user()?->username;
+
+        $orderData = [
+            'no_sj' => trim($validated['no_sj']),
+            'nama_dealer' => trim($validated['nama_dealer']),
+            'alamat_dealer' => $validated['alamat_dealer'] ?? null,
+            'jumlah_value_nota' => $validated['jumlah_value_nota'] ?? 0,
+            'tanggal_nota' => $validated['tanggal_nota'] ?? now()->toDateString(),
+            'tanggal_pengiriman' => $validated['tanggal_pengiriman'] ?? now()->toDateString(),
+            'nama_pengirim' => $senderName,
+            'nama_penerima' => $validated['nama_penerima'] ?? null,
+            'address' => $validated['address'] ?? ($validated['alamat_dealer'] ?? null),
+            'status' => $validated['status'] ?? 'IN_TRANSIT',
+            'notes' => $validated['notes'] ?? null,
+        ];
+
+        if ($request->hasFile('foto_nota_sj')) {
+            $orderData['foto_nota_sj'] = $request->file('foto_nota_sj')->store('tracking-orders/nota', 'public');
+        }
+
+        if ($request->hasFile('foto_penerima')) {
+            $orderData['foto_penerima'] = $request->file('foto_penerima')->store('tracking-orders/penerima', 'public');
+        }
+
+        $trackingOrder = TrackingOrder::create($orderData);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Surat Jalan {$trackingOrder->no_sj} berhasil dibuat.",
+            'data' => new TrackingOrderResource($trackingOrder),
+        ], 201);
+    }
 
     /**
      * Display a listing of tracking orders with search & filtering for couriers.

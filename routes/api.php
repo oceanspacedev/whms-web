@@ -19,12 +19,14 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('/courier/summary', [TrackingOrderApiController::class, 'courierSummary']);
 
     Route::get('/tracking-orders', [TrackingOrderApiController::class, 'index']);
+    Route::post('/tracking-orders', [TrackingOrderApiController::class, 'store']);
     Route::get('/tracking-orders/by-sj/{no_sj}', [TrackingOrderApiController::class, 'findByNoSj']);
     Route::get('/tracking-orders/{trackingOrder}', [TrackingOrderApiController::class, 'show']);
     Route::post('/tracking-orders/{trackingOrder}/submit-pod', [TrackingOrderApiController::class, 'submitPod']);
     Route::post('/tracking-orders/by-sj/{no_sj}/submit-pod', [TrackingOrderApiController::class, 'submitPodBySj']);
 
     Route::get('/purchase-orders', [PurchaseOrderApiController::class, 'index']);
+    Route::post('/purchase-orders', [PurchaseOrderApiController::class, 'store']);
     Route::get('/purchase-orders/by-po/{noPo}', [PurchaseOrderApiController::class, 'findByNoPo']);
     Route::get('/purchase-orders/by-sj/{noSj}', [PurchaseOrderApiController::class, 'findBySupplierSj']);
 });
