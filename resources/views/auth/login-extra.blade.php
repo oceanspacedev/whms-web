@@ -1,3 +1,4 @@
+@if (filled(config('services.wag.url')) && filled(config('services.wag.token')))
 <div class="mt-0 space-y-6">
     <div class="relative flex items-center justify-center">
         <div class="flex-grow border-t border-gray-200 dark:border-gray-700/80"></div>
@@ -24,4 +25,4 @@
         </x-filament::button>
     </div>
 </div>
-
+@endif

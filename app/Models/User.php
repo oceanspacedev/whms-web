@@ -45,6 +45,13 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
             if (($user->isDirty('whatsapp_number') || blank($user->whatsapp_verified_at)) && ! $user->isDirty('whatsapp_verified_at')) {
                 $user->whatsapp_verified_at = now();
             }
+
+            // Sync email_verified_at with whatsapp_verified_at so both stay in lockstep.
+            if ($user->isDirty('whatsapp_verified_at') && ! $user->isDirty('email_verified_at')) {
+                $user->email_verified_at = $user->whatsapp_verified_at;
+            } elseif ($user->isDirty('email_verified_at') && ! $user->isDirty('whatsapp_verified_at')) {
+                $user->whatsapp_verified_at = $user->email_verified_at;
+            }
         });
     }
 
