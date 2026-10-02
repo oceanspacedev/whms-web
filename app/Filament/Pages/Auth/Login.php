@@ -4,6 +4,7 @@ namespace App\Filament\Pages\Auth;
 
 use Apriansyahrs\MekayaTheme\Auth\MekayaLogin;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -23,6 +24,14 @@ class Login extends MekayaLogin
                 $this->getPasswordFormComponent(),
                 $this->getRememberFormComponent(),
             ]);
+    }
+
+    protected function getPasswordFormComponent(): Component
+    {
+        /** @var TextInput $component */
+        $component = parent::getPasswordFormComponent();
+
+        return $component->revealable();
     }
 
     /**

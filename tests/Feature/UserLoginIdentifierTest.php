@@ -36,6 +36,8 @@ class UserLoginIdentifierTest extends TestCase
         $this->assertSame('kasir_01', $user->username);
         $this->assertSame('6281298765432', $user->whatsapp_number);
         $this->assertNotNull($user->whatsapp_verified_at);
+        $this->assertNotNull($user->email_verified_at);
+        $this->assertSame($user->whatsapp_verified_at->toIso8601String(), $user->email_verified_at->toIso8601String());
         $this->assertTrue(Hash::check('secret-pass', $user->password));
     }
 

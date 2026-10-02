@@ -13,8 +13,13 @@ class PasswordLoginTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_login_page_shows_username_email_and_whatsapp_entry(): void
+    public function test_login_page_shows_username_email_and_whatsapp_entry_when_wag_configured(): void
     {
+        config([
+            'services.wag.url' => 'https://api.whatsapp.test',
+            'services.wag.token' => 'dummy-token',
+        ]);
+
         $response = $this->get('/admin/login');
 
         $response->assertOk();
@@ -23,6 +28,20 @@ class PasswordLoginTest extends TestCase
         $response->assertSee('Atau masuk dengan');
         $response->assertSee('WhatsApp');
         $response->assertSee(route('phone-login'), false);
+    }
+
+    public function test_login_page_hides_whatsapp_entry_when_wag_not_configured(): void
+    {
+        config([
+            'services.wag.url' => null,
+            'services.wag.token' => null,
+        ]);
+
+        $response = $this->get('/admin/login');
+
+        $response->assertOk();
+        $response->assertDontSee('Atau masuk dengan');
+        $response->assertDontSee(route('phone-login'), false);
     }
 
     public function test_panel_user_signs_in_with_email_and_password(): void

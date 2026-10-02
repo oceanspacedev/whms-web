@@ -18,7 +18,7 @@ use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'username', 'email', 'password', 'whatsapp_number', 'whatsapp_verified_at', 'avatar_url'])]
+#[Fillable(['name', 'username', 'email', 'email_verified_at', 'password', 'whatsapp_number', 'whatsapp_verified_at', 'avatar_url'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, HasAvatar
 {
@@ -33,23 +33,29 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
                 $user->username = $username === '' ? null : $username;
             }
 
+            if (filled($user->email)) {
+                if (($user->isDirty('email') || blank($user->email_verified_at)) && ! $user->isDirty('email_verified_at')) {
+                    $user->email_verified_at = now();
+                }
+            } else {
+                $user->email_verified_at = null;
+            }
+
             if (blank($user->whatsapp_number)) {
                 $user->whatsapp_number = null;
                 $user->whatsapp_verified_at = null;
+            } else {
+                $user->whatsapp_number = WhatsAppNumber::normalize((string) $user->whatsapp_number);
 
-                return;
-            }
-
-            $user->whatsapp_number = WhatsAppNumber::normalize((string) $user->whatsapp_number);
-
-            if (($user->isDirty('whatsapp_number') || blank($user->whatsapp_verified_at)) && ! $user->isDirty('whatsapp_verified_at')) {
-                $user->whatsapp_verified_at = now();
+                if (($user->isDirty('whatsapp_number') || blank($user->whatsapp_verified_at)) && ! $user->isDirty('whatsapp_verified_at')) {
+                    $user->whatsapp_verified_at = now();
+                }
             }
 
             // Sync email_verified_at with whatsapp_verified_at so both stay in lockstep.
             if ($user->isDirty('whatsapp_verified_at') && ! $user->isDirty('email_verified_at')) {
                 $user->email_verified_at = $user->whatsapp_verified_at;
-            } elseif ($user->isDirty('email_verified_at') && ! $user->isDirty('whatsapp_verified_at')) {
+            } elseif ($user->isDirty('email_verified_at') && ! $user->isDirty('whatsapp_verified_at') && filled($user->whatsapp_number)) {
                 $user->whatsapp_verified_at = $user->email_verified_at;
             }
         });
