@@ -25,13 +25,13 @@ class ExpeditionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Audit & Tarif Ekspedisi';
+    protected static \UnitEnum|string|null $navigationGroup = 'Ekspedisi';
 
     protected static ?string $navigationLabel = 'Master Ekspedisi';
 
     protected static ?string $modelLabel = 'Ekspedisi';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

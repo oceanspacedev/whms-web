@@ -18,11 +18,13 @@ class ExpeditionRateCard extends Model
         'origin_depo',
         'destination_city',
         'destination_district',
+        'province',
         'service_type',
         'rate_per_kg',
         'min_kg',
         'insurance_rate_percent',
         'sla_days',
+        'notes',
         'is_active',
     ];
 

@@ -22,9 +22,9 @@ class FreightInvoiceResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedScale;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Audit & Tarif Ekspedisi';
+    protected static \UnitEnum|string|null $navigationGroup = 'Audit';
 
-    protected static ?string $navigationLabel = 'Rekonsiliasi Invoice Ekspedisi';
+    protected static ?string $navigationLabel = 'Rekonsiliasi Invoice';
 
     protected static ?string $modelLabel = 'Invoice Tagihan Ekspedisi';
 
