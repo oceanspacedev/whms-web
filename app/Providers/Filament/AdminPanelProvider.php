@@ -56,6 +56,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationGroups([
                 'Logistik & Ekspedisi',
+                'Tracking Order',
                 'Ekspedisi',
                 'Audit',
                 'Filament Shield',

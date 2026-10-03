@@ -22,7 +22,7 @@ class PurchaseOrderResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Logistik & Ekspedisi';
+    protected static \UnitEnum|string|null $navigationGroup = 'Tracking Order';
 
     protected static ?string $navigationLabel = 'Purchase Order';
 
@@ -30,7 +30,7 @@ class PurchaseOrderResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Purchase Orders';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

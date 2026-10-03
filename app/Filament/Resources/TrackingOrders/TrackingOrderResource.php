@@ -21,15 +21,15 @@ class TrackingOrderResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQrCode;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Logistik & Ekspedisi';
+    protected static \UnitEnum|string|null $navigationGroup = 'Tracking Order';
 
-    protected static ?string $navigationLabel = 'Tracking Order';
+    protected static ?string $navigationLabel = 'Surat Jalan';
 
-    protected static ?string $modelLabel = 'Tracking Order';
+    protected static ?string $modelLabel = 'Surat Jalan';
 
-    protected static ?string $pluralModelLabel = 'Tracking Orders';
+    protected static ?string $pluralModelLabel = 'Surat Jalan';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
